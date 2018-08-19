@@ -1,5 +1,5 @@
 
-## Adding Passport to your project:
+## Adding Passport to your Mongo Project:
 The benefits of going through this somewhat painful process:
 - All requests to your server have the very useful `req.user` property.
 - All requests to your server can also be checked with `req.isAuthenticated()` to lock out rogue users.
@@ -8,13 +8,12 @@ The benefits of going through this somewhat painful process:
 - We'll use `bcrypt` to handle encryption.
 
 ### Install:
-Run `npm install passport passport-local express-session brcrypt-nodejs --save`.
+Run `npm install passport passport-local express-session cookie-session brcrypt --save`.
 
 ### Additions to `server.js`
 ```
 // This will handle all security stuff:
-const passport = require('./strategies/user-strategy.js'); // The '.js' is optional, but I like it
-// (Keep in mind we must change this file for production version):
+const passport = require('./strategies/user-strategy.js');
 // This is a more generic file that handles cookies:
 const sessionConfig = require('./modules/session-middleware.js');
 
@@ -32,7 +31,7 @@ app.use(passport.session());
 ### Step 1: Add `encryption.js` to your `modules` directory (it will be used by our `Strategy`)
 In this file, write:
 ```
-var bcrypt = require('bcrypt-nodejs');
+var bcrypt = require('bcrypt');
 var SALT_WORK_FACTOR = 10;
 
 var publicAPI = {
@@ -50,11 +49,22 @@ module.exports = publicAPI;
 
 ### Step 2: Add `session-middleware.js` to your `modules` directory
 In this file, write:
-```
-var session = require('express-session');
 
-module.exports = session({
-   secret: 'secret',
+```
+const cookieSession = require('cookie-session');
+
+const serverSessionSecret = () => {
+  if (!process.env.SERVER_SESSION_SECRET ||
+      process.env.SERVER_SESSION_SECRET.length < 8 ||
+      process.env.SERVER_SESSION_SECRET === warnings.exampleBadSecret) {
+    // Warning if user doesn't have a good secret
+    console.log('Yikes!');
+  }
+  return process.env.SERVER_SESSION_SECRET;
+};
+
+module.exports = cookieSession({
+   secret: serverSessionSecret() || 'secret',
    key: 'user', // this is the name of the req.variable. 'user' is convention, but not required
    resave: 'true',
    saveUninitialized: false,
@@ -66,10 +76,8 @@ module.exports = session({
 Nothing fancy here, probably you'll just integrate this with your current User model:
 ```
 const mongoose = require('mongoose');
-
 const Schema = mongoose.Schema;
 
-// Mongoose Schema
 const PersonSchema = new Schema({
   username: { type: String, required: true, index: { unique: true } },
   password: { type: String, required: true },
@@ -181,9 +189,9 @@ router.get('/logout', (req, res) => {
 
 Oh, and before we can use these routes, we'll need to `require` our dependencies:
 ```
-const encryptLib = require('../modules/encryption');
-const Person = require('../models/Person');
-const userStrategy = require('../strategies/user.strategy');
+const encryptLib = require('../modules/encryption.js'); // The '.js' is optional, but I like it
+const Person = require('../models/Person.js');
+const userStrategy = require('../strategies/user-strategy.js');
 ```
 
 ### Conclusion

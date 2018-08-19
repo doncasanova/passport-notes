@@ -11,7 +11,8 @@ The benefits of going through this somewhat painful process:
 Run `npm install passport passport-local express-session brcrypt-nodejs --save`.
 
 ### Additions to `server.js`
-```// This is the file that will handle all security stuff:
+```
+// This is the file that will handle all security stuff:
 const passport = require('./strategies/user.strategy');
 // (Keep in mind we must change this file for production version):
 // This is a more generic file that handles cookies:
@@ -31,7 +32,8 @@ app.use(passport.session());
 
 ### Step 1: Add `encryption.js` to your `modules` directory (it will be used by our `Strategy`)
 In this file, write:
-```var bcrypt = require('bcrypt-nodejs');
+```
+var bcrypt = require('bcrypt-nodejs');
 var SALT_WORK_FACTOR = 10;
 
 var publicAPI = {
@@ -52,7 +54,8 @@ module.exports = publicAPI;
 
 ### Step 2: Add `session.config.js` to your `modules` directory
 In this file, write:
-```var session = require('express-session');
+```
+var session = require('express-session');
 
 module.exports = session({
    secret: 'secret',
@@ -65,7 +68,8 @@ module.exports = session({
 
 ### Step 3: Add a `Person.js` file to your `models` directory
 Nothing fancy here, probably you'll just integrate this with your current User model:
-```const mongoose = require('mongoose');
+```
+const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
@@ -78,9 +82,10 @@ const PersonSchema = new Schema({
 module.exports = mongoose.model('Person', PersonSchema);
 ```
 
-### Add `user.strategy.js` to your `strategies` directory:
+### Step 4: Add `user.strategy.js` to your `strategies` directory:
 This is the big kahuna. In this file, write:
-```const passport = require('passport');
+```
+const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const encryptLib = require('../modules/encryption');
 const Person = require('../models/Person');
@@ -136,3 +141,47 @@ module.exports = passport;
 ```
 
 ### Phew!
+Now, if there is a god, we should be able to ping our authentication route like this:
+```
+router.get('/', (req, res) => {
+  // check if logged in
+  if (req.isAuthenticated()) {
+    // send back user object from database
+    res.send(req.user);
+  } else {
+    // failure best handled on the server. do redirect here.
+    res.sendStatus(403);
+  }
+});
+```
+
+### I Lied, There's More
+There are a few more routes we need -- for registering, logging in, and logging out:
+```
+router.post('/register', (req, res, next) => {
+  const username = req.body.username;
+  const password = encryptLib.encryptPassword(req.body.password);
+  const newPerson = new Person({ username, password });
+  newPerson.save()
+    .then(() => {
+      res.sendStatus(201);
+    })
+    .catch((err) => { next(err); });
+});
+
+// Handles login form authenticate/login POST
+// This middleware will run our POST if successful:
+router.post('/login', userStrategy.authenticate('local'), (req, res) => {
+  res.sendStatus(200);
+});
+
+// clear all server session information about this user
+router.get('/logout', (req, res) => {
+  // Use passport's built-in method to log out the user
+  req.logout();
+  res.sendStatus(200);
+});
+```
+
+### Conclusion
+If that didn't work, I probably messed up, reach out to me and we'll get to the bottom of it.

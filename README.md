@@ -12,15 +12,14 @@ Run `npm install passport passport-local express-session brcrypt-nodejs --save`.
 
 ### Additions to `server.js`
 ```
-// This is the file that will handle all security stuff:
-const passport = require('./strategies/user.strategy');
+// This will handle all security stuff:
+const passport = require('./strategies/user-strategy.js'); // The '.js' is optional, but I like it
 // (Keep in mind we must change this file for production version):
 // This is a more generic file that handles cookies:
-const sessionConfig = require('./modules/session-middleware');
+const sessionConfig = require('./modules/session-middleware.js');
 
-// Passport Session Configuration
+// Passport session config and init:
 app.use(sessionConfig);
-// Start up passport sessions
 app.use(passport.initialize());
 app.use(passport.session());
 ```
@@ -42,9 +41,6 @@ var publicAPI = {
       return bcrypt.hashSync(password, salt);
   },
   comparePassword: function(candidatePassword, storedPassword) {
-      console.log('comparing passwords');
-      console.log(candidatePassword, storedPassword);
-      //ndidatePassword, this.password
       return bcrypt.compareSync(candidatePassword, storedPassword);
   }
 };
@@ -52,7 +48,7 @@ var publicAPI = {
 module.exports = publicAPI;
 ```
 
-### Step 2: Add `session.config.js` to your `modules` directory
+### Step 2: Add `session-middleware.js` to your `modules` directory
 In this file, write:
 ```
 var session = require('express-session');
@@ -82,7 +78,7 @@ const PersonSchema = new Schema({
 module.exports = mongoose.model('Person', PersonSchema);
 ```
 
-### Step 4: Add `user.strategy.js` to your `strategies` directory:
+### Step 4: Add `user-strategy.js` to your `strategies` directory:
 This is the big kahuna. In this file, write:
 ```
 const passport = require('passport');
@@ -181,6 +177,13 @@ router.get('/logout', (req, res) => {
   req.logout();
   res.sendStatus(200);
 });
+```
+
+Oh, and before we can use these routes, we'll need to `require` our dependencies:
+```
+const encryptLib = require('../modules/encryption');
+const Person = require('../models/Person');
+const userStrategy = require('../strategies/user.strategy');
 ```
 
 ### Conclusion

@@ -145,6 +145,7 @@ passport.use('local', new LocalStrategy({
 module.exports = passport;
 ```
 
+## Final Steps
 ### Phew!
 Now, if there is a god, we should be able to ping our authentication route like this:
 ```
@@ -193,5 +194,5 @@ const Person = require('../models/Person.js');
 const userStrategy = require('../strategies/user-strategy.js');
 ```
 
-### Conclusion
+## Conclusion
 If that didn't work, I probably messed up, reach out to me and we'll get to the bottom of it.

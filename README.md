@@ -57,7 +57,7 @@ const serverSessionSecret = () => {
   if (!process.env.SERVER_SESSION_SECRET ||
       process.env.SERVER_SESSION_SECRET.length < 8 ||
       process.env.SERVER_SESSION_SECRET === warnings.exampleBadSecret) {
-    // Warning if user doesn't have a good secret
+    // Warning if user doesn't have a good secret:
     console.log('Yikes!');
   }
   return process.env.SERVER_SESSION_SECRET;
@@ -121,7 +121,6 @@ passport.use('local', new LocalStrategy({
   passReqToCallback: true,
   usernameField: 'username',
 }, ((req, username, password, done) => {
-    if( verbose ) console.log( 'trying to log in:', username, password );
     Person.find({ username })
       .then((result) => {
         const user = result && result[0];
@@ -150,10 +149,8 @@ Now, if there is a god, we should be able to ping our authentication route like 
 router.get('/', (req, res) => {
   // check if logged in
   if (req.isAuthenticated()) {
-    // send back user object from database
     res.send(req.user);
   } else {
-    // failure best handled on the server. do redirect here.
     res.sendStatus(403);
   }
 });
@@ -162,6 +159,7 @@ router.get('/', (req, res) => {
 ### I Lied, There's More
 There are a few more routes we need -- for registering, logging in, and logging out:
 ```
+// REGISTER:
 router.post('/register', (req, res, next) => {
   const username = req.body.username;
   const password = encryptLib.encryptPassword(req.body.password);
@@ -173,13 +171,12 @@ router.post('/register', (req, res, next) => {
     .catch((err) => { next(err); });
 });
 
-// Handles login form authenticate/login POST
-// This middleware will run our POST if successful:
+// LOGIN:
 router.post('/login', userStrategy.authenticate('local'), (req, res) => {
   res.sendStatus(200);
 });
 
-// clear all server session information about this user
+// LOGOUT (clear session data):
 router.get('/logout', (req, res) => {
   // Use passport's built-in method to log out the user
   req.logout();

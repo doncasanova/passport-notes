@@ -11,7 +11,7 @@ The benefits of going through this somewhat painful process:
 Run `npm install passport passport-local express-session brcrypt-nodejs --save`.
 
 ### Additions to `server.js`
-`// This is the file that will handle all security stuff:
+```// This is the file that will handle all security stuff:
 const passport = require('./strategies/user.strategy');
 // (Keep in mind we must change this file for production version):
 // This is a more generic file that handles cookies:
@@ -21,7 +21,8 @@ const sessionConfig = require('./modules/session-middleware');
 app.use(sessionConfig);
 // Start up passport sessions
 app.use(passport.initialize());
-app.use(passport.session());`
+app.use(passport.session());
+```
 
 ### Add `modules` and `strategies` directories
 - If you do not have these directories in your root project directory, add them.
@@ -30,7 +31,7 @@ app.use(passport.session());`
 
 ### Step 1: Add `encryption.js` to your `modules` directory (it will be used by our `Strategy`)
 In this file, write:
-`var bcrypt = require('bcrypt-nodejs');
+```var bcrypt = require('bcrypt-nodejs');
 var SALT_WORK_FACTOR = 10;
 
 var publicAPI = {
@@ -46,11 +47,12 @@ var publicAPI = {
   }
 };
 
-module.exports = publicAPI;`
+module.exports = publicAPI;
+```
 
 ### Step 2: Add `session.config.js` to your `modules` directory
 In this file, write:
-`var session = require('express-session');
+```var session = require('express-session');
 
 module.exports = session({
    secret: 'secret',
@@ -58,11 +60,12 @@ module.exports = session({
    resave: 'true',
    saveUninitialized: false,
    cookie: { maxage: 60000, secure: false }
-});`
+});
+```
 
 ### Step 3: Add a `Person.js` file to your `models` directory
 Nothing fancy here, probably you'll just integrate this with your current User model:
-`const mongoose = require('mongoose');
+```const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
@@ -72,11 +75,12 @@ const PersonSchema = new Schema({
   password: { type: String, required: true },
 });
 
-module.exports = mongoose.model('Person', PersonSchema);`
+module.exports = mongoose.model('Person', PersonSchema);
+```
 
 ### Add `user.strategy.js` to your `strategies` directory:
 This is the big kahuna. In this file, write:
-`const passport = require('passport');
+```const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const encryptLib = require('../modules/encryption');
 const Person = require('../models/Person');
@@ -128,6 +132,7 @@ passport.use('local', new LocalStrategy({
       });
   })));
 
-module.exports = passport;`
+module.exports = passport;
+```
 
 ### Phew!

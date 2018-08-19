@@ -1,5 +1,5 @@
 
-## Adding Passport to your Mongo Project:
+# Adding Passport to your Mongo Project:
 The benefits of going through this somewhat painful process:
 - All requests to your server have the very useful `req.user` property.
 - All requests to your server can also be checked with `req.isAuthenticated()` to lock out rogue users.
@@ -7,6 +7,7 @@ The benefits of going through this somewhat painful process:
 - It becomes easy to check from the global `App.js` whether a user is logged in, and thus what to display in the Nav bar.
 - We'll use `bcrypt` to handle encryption.
 
+## Basic Setup:
 ### Install:
 Run `npm install passport passport-local express-session cookie-session brcrypt --save`.
 
@@ -23,6 +24,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 ```
 
+## Adding Files:
 ### Add `modules` and `strategies` directories
 - If you do not have these directories in your root project directory, add them.
 - You'll also need a `models` directory, but you should already have one.
